@@ -1,211 +1,281 @@
-# RAMP: Resource Access Marking Protocol
+# 📡 RAMP: Resource Access Marking Protocol
 
-## Overview
+## 🔍 Overview
 
-RAMP provides a unified system for marking and identifying communication endpoints across physical and digital domains. Developed for technical gatherings, it enables systematic identification of diverse network resources while maintaining human readability.
+RAMP provides a unified system for marking and identifying communication endpoints across physical and digital domains, designed specifically for hacker spaces, maker labs and technical gatherings like the Chaos Communication Congress.
 
-## Core Architecture
+## 🏗️ Core Architecture 
 
-```python
-class RAMPCore:
-    """Core RAMP specification"""
-    SYNTAX = '<layer>/<protocol>[:<parameters>][#<meta>]'
-    VERSION = '1.0.0'
+Basic syntax:
+```
+<layer>/<protocol>:<parameters>#<metadata>
 ```
 
-## Protocol Stack
+Example: `P/L:433.500/SF7#MESHNODE`
 
+### Label Format
+
+Standard sticker (40x40mm):
+```
+┌────────────────┐
+│      [QR]      │
+├────────────────┤
+│ P/L:433.500M   │
+│ /SF7#NODE01    │
+├────────────────┤
+│   📡  LoRa     │
+│   Node #01     │
+└────────────────┘
+```
+
+### URI Format
+```
+ramp://<layer>/<protocol>:<parameters>#<metadata>
+```
+
+## 🌐 Protocol Stack Examples
+
+### Basic Layer Model
 ```mermaid
 graph TB
-    L0[Layer 0: Physical] -->|Transmission| L1[Layer 1: Network]
-    L1 -->|Protocol| L2[Layer 2: Application]
-    L2 -->|Service| L3[Layer 3: Social]
+    L0[Physical Layer: P] -->|Raw transmission| L1[Network Layer: N]
+    L1 -->|Protocol| L2[Application Layer: A]
 
     style L0 fill:#1a73e8,color:white
-    style L1 fill:#34a853,color:white
+    style L1 fill:#34a853,color:white 
     style L2 fill:#ea4335,color:white
-    style L3 fill:#fbbc04,color:white
 ```
 
-## Protocol Mappings
+### Examples
 
-### Layer 0: Physical Medium
+## Remote Shell Access
+
+```mermaid
+graph TB
+   P1[P/L:433.500/SF7] -->|Mesh Node| N1[N/R:a1b2c3d4]
+   N1 -->|Transport| A1[A/X:shell#1337]
+
+   style P1 fill:#1a73e8,color:white
+   style N1 fill:#34a853,color:white
+   style A1 fill:#ea4335,color:white
+```
+
+Remote system access over LoRa-based Reticulum mesh. SF7 spreading factor balances range and speed.
+
+```
+┌────────────────┐
+│      [QR]      │
+├────────────────┤
+│ P/L:433.500M   │
+│ /SF7#SHELL01   │
+├────────────────┤
+│   📡  LoRa     │
+│   Shell #01    │
+└────────────────┘
+```
+
+## DMR Repeater System
+```mermaid
+graph TB
+    P1[P/R:145.500MHz] -->|Input| N1[N/D:317523]
+    N1 -->|Controller| P2[P/R:145.900MHz]
+    P2 -->|Output| A1[A/M:@rprt145]
+
+    style P1 fill:#1a73e8,color:white
+    style N1 fill:#34a853,color:white
+    style P2 fill:#1a73e8,color:white
+    style A1 fill:#ea4335,color:white
+```
+
+DMR voice repeater with Matrix status updates. Input 145.500MHz, output 145.900MHz, monitoring via Matrix.
+
+```
+┌────────────────┐
+│      [QR]     │
+├────────────────┤
+│ P/R:145.500M   │
+│ #RPRT317523    │
+├────────────────┤
+│   📻  DMR      │
+│ Repeater #01   │
+└────────────────┘
+```
+
+## 📋 Protocol Mappings
+
+### Physical Layer (P)
 ```python
 PHYSICAL = {
-    'L': {'name': 'LoRa',      'params': 'frequency:mode'},
-    'R': {'name': 'RF',        'params': 'frequency:mode'},
-    'B': {'name': 'Bluetooth', 'params': 'uuid'},
-    'N': {'name': 'NFC/RFID',  'params': 'id:type'},
-    'P': {'name': 'Physical',  'params': 'location:asset'},
-    'W': {'name': 'WiFi',      'params': 'ssid:security'},
-    'H': {'name': 'HAMnet',    'params': 'node:subnet'},
-    'V': {'name': 'Voice',     'params': 'channel:mode'}
+    # Radio
+    'L': {'name': 'LoRa',      'params': 'freq/sf',      'note': '📡 Long Range Radio'},
+    'R': {'name': 'RF',        'params': 'freq/mode',    'note': '📻 Generic Radio'},
+    'W': {'name': 'WiFi',      'params': 'channel/band', 'note': '📶 WiFi Radio'},
+    'B': {'name': 'BLE',       'params': 'mac/type',     'note': '🦷 Bluetooth Low Energy'},
+    'Z': {'name': 'Zigbee',    'params': 'channel/pan',  'note': '🕸️ Zigbee Radio'},
+    
+    # Wired
+    'E': {'name': 'Ethernet',  'params': 'speed/duplex', 'note': '🔌 Wired Network'},
+    'S': {'name': 'Serial',    'params': 'speed/config', 'note': '🔤 Serial Data'},
+    'U': {'name': 'USB',       'params': 'version/mode', 'note': '🔌 Universal Serial Bus'},
+    'C': {'name': 'CAN',       'params': 'speed/format', 'note': '🚗 Controller Area Network'},
+    
+    # Special
+    'O': {'name': 'Optical',   'params': 'type/power',   'note': '🔦 Light-based'},
+    'N': {'name': 'NFC',       'params': 'type/mode',    'note': '📱 Near Field Comms'},
+    'A': {'name': 'Audio',     'params': 'freq/mode',    'note': '🔊 Sound-based'},
+    'Q': {'name': 'QAM',       'params': 'const/rate',   'note': '〰️ RF Modulation'},
+    'V': {'name': 'Visual',    'params': 'format/fps',   'note': '👁️ Visual Light Comms'}
 }
 ```
 
-### Layer 1: Network
+### Network Layer (N)
 ```python
 NETWORK = {
-    'A': {'name': 'AX.25',      'params': 'callsign'},
-    'D': {'name': 'DMR',        'params': 'id:group'},
-    'E': {'name': 'ESP-NOW',    'params': 'mac'},
-    'I': {'name': 'IP',         'params': 'v4|v6'},
-    'M': {'name': 'Meshtastic', 'params': 'id'},
-    'R': {'name': 'Reticulum',  'params': 'transport/node/identity'},
-    'N': {'name': 'AREDN',      'params': 'node:channel'},
-    'T': {'name': 'BitTorrent', 'params': 'hash:tracker'}
+    # Amateur Radio
+    'A': {'name': 'AX.25',     'params': 'call/ssid',    'note': '📡 Packet Radio'},
+    'D': {'name': 'DMR',       'params': 'id/group',     'note': '🎙️ Digital Mobile Radio'},
+    'P': {'name': 'POCSAG',    'params': 'ric/type',     'note': '📟 Paging Protocol'},
+    
+    # IP-based
+    'I': {'name': 'IPv4',      'params': 'addr/mask',    'note': '🌐 Internet Protocol v4'},
+    '6': {'name': 'IPv6',      'params': 'addr/prefix',  'note': '🌐 Internet Protocol v6'},
+    'T': {'name': 'TCP',       'params': 'port/service', 'note': '🔌 Transport Control'},
+    'U': {'name': 'UDP',       'params': 'port/service', 'note': '🔌 User Datagram'},
+    
+    # Mesh/P2P
+    'M': {'name': 'Meshtastic','params': 'id/channel',   'note': '🕸️ Meshtastic Mesh'},
+    'R': {'name': 'Reticulum', 'params': 'hash/type',    'note': '🕸️ Reticulum Mesh'},
+    'Y': {'name': 'Yggdrasil', 'params': 'addr/subnet',  'note': '🌳 Yggdrasil Network'},
+    'C': {'name': 'cjdns',     'params': 'addr/peers',   'note': '🕸️ cjdns Mesh'},
+    'H': {'name': 'HAMnet',    'params': 'call/subnet',  'note': '📡 Amateur Radio Network'},
+    
+    # Overlay Networks  
+    'O': {'name': 'Tor',       'params': 'hash/port',    'note': '🧅 Tor Network'},
+    'N': {'name': 'I2P',       'params': 'dest/port',    'note': '🧅 I2P Network'},
+    'L': {'name': 'IPFS',      'params': 'hash/gateway', 'note': '📦 InterPlanetary FS'},
+    
+    # Experimental
+    'Q': {'name': 'QKD',       'params': 'qubits/key',   'note': '🔐 Quantum Key Dist'},
+    'X': {'name': 'XBee',      'params': 'addr/pan',     'note': '🐝 XBee Networks'}
 }
 ```
 
-### Layer 2: Application
+### Application Layer (A)
 ```python
 APPLICATION = {
-    'C': {'name': 'Callsign',    'params': 'sign:ssid'},
-    'G': {'name': 'GPG',         'params': 'keyid'},
-    'M': {'name': 'Matrix',      'params': '@user:home'},
-    'O': {'name': 'OTR',         'params': 'fingerprint'},
-    'P': {'name': 'POCSAG',      'params': 'ric:type'},
-    'X': {'name': 'XMPP',        'params': 'jid'},
-    'H': {'name': 'HTTP',        'params': 'host:port'},
-    'T': {'name': 'Telemetry',   'params': 'type:id'},
-    'S': {'name': 'SIP',         'params': 'extension:group'}
+    # Communication
+    'M': {'name': 'Matrix',    'params': 'user/room',    'note': '💬 Matrix Protocol'},
+    'X': {'name': 'XMPP',      'params': 'jid/muc',      'note': '💬 XMPP Protocol'},
+    'I': {'name': 'IRC',       'params': 'nick/chan',    'note': '💬 Internet Relay Chat'},
+    'L': {'name': 'LXMF',      'params': 'addr/type',    'note': '📨 LXMF Messaging'},
+    'E': {'name': 'Email',     'params': 'addr/proto',   'note': '📧 Email Protocol'},
+    
+    # Services
+    'H': {'name': 'HTTP',      'params': 'host/path',    'note': '🌐 Web Service'},
+    'G': {'name': 'Gemini',    'params': 'host/path',    'note': '🚀 Gemini Protocol'},
+    'S': {'name': 'SIP',       'params': 'user/server',  'note': '☎️ Voice Over IP'},
+    'F': {'name': 'FTP',       'params': 'host/path',    'note': '📂 File Transfer'},
+    'N': {'name': 'NNTP',      'params': 'host/group',   'note': '📰 Usenet News'},
+    
+    # Security
+    'P': {'name': 'PGP',       'params': 'keyid/type',   'note': '🔐 PGP Keys'},
+    'O': {'name': 'OTR',       'params': 'fp/version',   'note': '🤫 Off The Record'},
+    'W': {'name': 'WireGuard', 'params': 'peer/port',    'note': '🔒 VPN Tunnel'},
+    
+    # Special Purpose
+    'T': {'name': 'Telemetry', 'params': 'type/rate',    'note': '📊 Sensor Data'},
+    'D': {'name': 'DNS',       'params': 'name/type',    'note': '📖 Name Service'},
+    'B': {'name': 'Bitcoin',   'params': 'addr/type',    'note': '₿ Cryptocurrency'},
+    'R': {'name': 'Radio',     'params': 'freq/mode',    'note': '📻 Amateur Radio'},
+    'Z': {'name': 'ZeroMQ',    'params': 'socket/bind',  'note': '🔄 Message Queue'}
 }
 ```
 
-### Layer 3: Service
+## 🎪 Congress Example Labels
+
+WiFi Access Point:
+```
+┌────────────────┐
+│      [QR]      │
+├────────────────┤
+│ P/W:5180/160   │
+│ #NOC.AP.12     │
+├────────────────┤
+│   📶  WiFi     │
+│   NOC AP 12    │
+└────────────────┘
+```
+
+Network Segment:
+```
+┌────────────────┐
+│      [QR]      │
+├────────────────┤
+│ N/I:10.128.0   │
+│ /16#HACKCTR    │
+├────────────────┤
+│   🌐  Net      │
+│  Hack Center   │
+└────────────────┘
+```
+
+Matrix Server:
+```
+┌────────────────┐
+│      [QR]      │
+├────────────────┤
+│ A/M:matrix.c   │
+│ cc#SOCIAL01    │
+├────────────────┤
+│   💬 Matrix    │
+│  Social Hub    │
+└────────────────┘
+```
+
+Badge Charging:
+```
+┌────────────────┐
+│      [QR]      │
+├────────────────┤
+│ P/U:2.0/PD     │
+│ #CHARGE.05     │
+├────────────────┤
+│   🔌  USB      │
+│ Charging #05   │
+└────────────────┘
+```
+
+## 🖨️ Output Formats
+
 ```python
-SERVICES = {
-    'F': {'name': 'Fediverse',   'params': '@user@instance'},
-    'I': {'name': 'IRC',         'params': 'nick!user@host'},
-    'U': {'name': 'URI',         'params': 'scheme:path'},
-    'M': {'name': 'Mastodon',    'params': '@handle@instance'},
-    'B': {'name': 'BitTorrent',  'params': 'magnet:hash'},
-    'L': {'name': 'LXMF',        'params': 'address:type'},
-    'S': {'name': 'Species',     'params': 'type:method'}
+OUTPUT_FORMATS = {
+    'LABEL': {
+        'content': ['RAMP', 'QR', 'Notes'],
+        'sizes': ['40x40mm', '60x60mm', '100x100mm']
+    },
+    'DIGITAL': {
+        'uri': 'ramp://<specification>',
+        'qr': 'binary',
+        'nfc': 'ndef_record'
+    },
+    'DISPLAY': {
+        'screen': 'animated_qr',
+        'paper': 'static_label',
+        'badge': 'e-ink'
+    }
 }
 ```
 
-## Implementation Examples
+## 🤝 Contributing
 
-### Meshtastic Node
-```mermaid
-graph TB
-    PHY[LoRa Physical] -->|868MHz| NET[Meshtastic Network]
-    NET -->|Group: HIKING| APP[Application: NODE-01]
+Got improvements? Join the discussion at #ramp:c3.community!
 
-    style PHY fill:#1a73e8,color:white
-    style NET fill:#34a853,color:white
-    style APP fill:#ea4335,color:white
-```
-RAMP: `L/M:868#HIKING-01`
+Areas for contribution:
+- Protocol extensions & mappings 🔧
+- Physical format implementations 🎨
+- Documentation & examples 📚 
+- Real-world use cases 🌍
 
-### Reticulum Service
-```mermaid
-graph TB
-    PHY[LoRa Physical] -->|433MHz| NET[Reticulum Network]
-    NET -->|Transport| SVC[Service: LXMF]
-    SVC -->|Application| NOM[Nomadnet]
-
-    style PHY fill:#1a73e8,color:white
-    style NET fill:#34a853,color:white
-    style SVC fill:#ea4335,color:white
-    style NOM fill:#fbbc04,color:white
-```
-RAMP: `L/R:433/X#NOMAD`
-
-### Voice Communication
-```mermaid
-graph TB
-    INP[Input: 145.025MHz] -->|Receive| REP[Repeater System]
-    REP -->|Transmit| OUT[Output: 145.625MHz]
-    PBX[Phone System] -->|Extension: 1337| REP
-
-    style INP fill:#1a73e8,color:white
-    style REP fill:#34a853,color:white
-    style OUT fill:#ea4335,color:white
-    style PBX fill:#fbbc04,color:white
-```
-RAMP: `R:145.025/145.625#VOICE-1337`
-
-## Technical Parameters
-
-```python
-class RAMPValidator:
-    """Comprehensive parameter validation patterns"""
-    PATTERNS = {
-        'MAC': r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$',
-        'SSID': r'^[^!#;+\]\/"\t]{1,32}$',
-        'IPV4': r'^\d{1,3}(\.\d{1,3}){3}$',
-        'IPV6': r'^([0-9a-fA-F]{0,4}:){7}[0-9a-fA-F]{0,4}$',
-        'CALLSIGN': r'^[A-Z0-9]{1,6}\d{0,2}$',
-        'EXTENSION': r'^\d{4}$',
-        'CALLGROUP': r'^[5-9]\d{2}$',
-        'BTIH': r'^[0-9a-fA-F]{40}$',
-        'URL': r'^[a-zA-Z][a-zA-Z0-9+.-]*://',
-        'MAGNET': r'^magnet:\?xt=urn:btih:',
-        'FREQUENCY': r'^\d+\.\d{3}[MG]Hz$',
-        'RIC': r'^\d{7}$',
-        'NODE_ID': r'^[0-9a-f]{8}$'
-    }
-```
-
-## Physical Implementation
-
-### Marker Specifications
-```python
-class RAMPMarker:
-    """Physical marker specifications"""
-    DIMENSIONS = {
-        'min_height': 15,    # mm
-        'min_width': 40,     # mm
-        'qr_size': 25        # mm
-    }
-    
-    TYPOGRAPHY = {
-        'font': 'monospace',
-        'weight': 'medium',
-        'contrast': 'high',
-        'min_size': 8        # pt
-    }
-    
-    FEATURES = [
-        'machine_readable',  # OCR-friendly
-        'qr_optional',      # Extended information
-        'high_contrast',    # For variable lighting
-        'weather_resistant' # For outdoor use
-    ]
-```
-
-### Label Templates
-```python
-class RAMPLabel:
-    """Standard label formats"""
-    FORMATS = {
-        'small': {'size': '25x15mm', 'use': 'equipment'},
-        'medium': {'size': '50x25mm', 'use': 'indoor'},
-        'large': {'size': '100x50mm', 'use': 'outdoor'}
-    }
-    
-    QR_FORMATS = {
-        'minimal': {'data': 'ramp://<protocol>'},
-        'complete': {'data': 'ramp://<protocol>#<meta>'}
-    }
-```
-
-## Congress Implementation Context
-
-Designed for technical gatherings where diverse communication systems coexist. Enables:
-- Quick system identification
-- Resource discovery
-- Network documentation
-- Access point marking
-
-### Physical Deployment
-- Adhesive labels
-- Hanging signs
-- Digital displays
-- QR-enhanced markers
-
-## License
+## 📄 License
 
 MIT
